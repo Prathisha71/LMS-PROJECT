@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLmsStore } from '../store/useLmsStore';
 import { 
-  Bell, Sun, Moon, Flame, Zap, Award, BookOpen, 
+  Bell, Sun, Moon, BookOpen, 
   Menu, X, Sparkles, LogOut, ChevronDown 
 } from 'lucide-react';
 
@@ -48,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         {onToggleSidebar && (
           <button 
             onClick={onToggleSidebar}
-            className="md:hidden p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-100"
+            className="md:hidden p-2 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -67,36 +67,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
 
       {/* Top Navigation Options / Badges */}
       <div className="flex items-center gap-4">
-        {/* Gamified stats for Student */}
-        {profile.role === 'student' && activeView !== 'landing' && (
-          <div className="hidden lg:flex items-center gap-3 bg-slate-950/20 dark:bg-slate-950/50 border border-white/5 dark:border-white/5 rounded-xl px-3 py-1.5 text-xs font-semibold select-none">
-            {/* Streak */}
-            <div className="flex items-center gap-1.5 text-orange-400" title="Daily study streak">
-              <Flame className="w-4 h-4 fill-orange-500/20" />
-              <span>{profile.streak} Days</span>
-            </div>
-            <div className="w-[1px] h-4 bg-white/10" />
-            {/* Level & XP */}
-            <div className="flex items-center gap-1.5 text-violet-400" title="XP Progress to Level-Up">
-              <Award className="w-4 h-4" />
-              <span>Lvl {profile.level} ({profile.xp % 1000}/1000 XP)</span>
-            </div>
-            <div className="w-[1px] h-4 bg-white/10" />
-            {/* Coins */}
-            <div className="flex items-center gap-1.5 text-yellow-400" title="EduVerse Coins">
-              <Zap className="w-4 h-4 fill-yellow-500/20" />
-              <span>{profile.coins} Coins</span>
-            </div>
-          </div>
-        )}
 
-        {/* Theme Toggler */}
-        <button 
-          onClick={() => setTheme(!isDarkMode)}
-          className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-950/50 dark:hover:bg-slate-950 border border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 dark:hover:text-slate-100 transition-all"
-        >
-          {isDarkMode ? <Sun className="w-4.5 h-4.5" /> : <Moon className="w-4.5 h-4.5" />}
-        </button>
 
         {/* Notifications Popover */}
         <div className="relative">

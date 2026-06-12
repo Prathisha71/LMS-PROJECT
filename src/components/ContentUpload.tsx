@@ -6,10 +6,10 @@ export const ContentUpload: React.FC = () => {
   const { boards, createTopic, createChapter, setView } = useLmsStore();
   
   // Selection binds
-  const [boardId, setBoardId] = useState('cbse');
+  const [boardId, setBoardId] = useState('tnsb');
   const [classId, setClassId] = useState('class-12');
-  const [subjectId, setSubjectId] = useState('physics-12');
-  const [chapterId, setChapterId] = useState('electrostatics');
+  const [subjectId, setSubjectId] = useState('maths-12');
+  const [chapterId, setChapterId] = useState('matrices-determinants-12');
 
   // Chapter Creator states
   const [newChapterTitle, setNewChapterTitle] = useState('');
@@ -75,65 +75,65 @@ export const ContentUpload: React.FC = () => {
       
       {/* Left Column: Category selectors & Dynamic Chapter creation */}
       <div className="space-y-6">
-        <div className="glass-card p-5 border-white/5 space-y-4">
-          <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+        <div className="glass-card p-5 border-slate-200 dark:border-white/5 space-y-4">
+          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/5 pb-3">
             <BookOpen className="w-4.5 h-4.5 text-brand-royal" />
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Target Core Syllabus</h3>
+            <h3 className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-widest">Target Core Syllabus</h3>
           </div>
 
           <div className="space-y-3">
             {/* Board Selector */}
             <div className="space-y-1">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Board Standard</label>
+              <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase tracking-wide">Board Standard</label>
               <select 
                 value={boardId} 
                 onChange={(e) => setBoardId(e.target.value)}
                 className="premium-input text-xs"
               >
                 {boards.map(b => (
-                  <option key={b.id} value={b.id} className="bg-slate-950">{b.title}</option>
+                  <option key={b.id} value={b.id} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">{b.title}</option>
                 ))}
               </select>
             </div>
 
             {/* Class Selector */}
             <div className="space-y-1">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Class Grade</label>
+              <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase tracking-wide">Class Grade</label>
               <select 
                 value={classId} 
                 onChange={(e) => setClassId(e.target.value)}
                 className="premium-input text-xs"
               >
                 {activeBoard.classes.map(c => (
-                  <option key={c.id} value={c.id} className="bg-slate-950">{c.title}</option>
+                  <option key={c.id} value={c.id} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">{c.title}</option>
                 ))}
               </select>
             </div>
 
             {/* Subject Selector */}
             <div className="space-y-1">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Subject Module</label>
+              <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase tracking-wide">Subject Module</label>
               <select 
                 value={subjectId} 
                 onChange={(e) => setSubjectId(e.target.value)}
                 className="premium-input text-xs"
               >
                 {activeClass?.subjects.map(s => (
-                  <option key={s.id} value={s.id} className="bg-slate-950">{s.title}</option>
+                  <option key={s.id} value={s.id} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">{s.title}</option>
                 ))}
               </select>
             </div>
 
             {/* Chapter Selector */}
             <div className="space-y-1">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Active Chapter</label>
+              <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase tracking-wide">Active Chapter</label>
               <select 
                 value={chapterId} 
                 onChange={(e) => setChapterId(e.target.value)}
                 className="premium-input text-xs"
               >
                 {activeSubject?.chapters.map(c => (
-                  <option key={c.id} value={c.id} className="bg-slate-950">{c.title}</option>
+                  <option key={c.id} value={c.id} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">{c.title}</option>
                 ))}
               </select>
             </div>
@@ -141,19 +141,19 @@ export const ContentUpload: React.FC = () => {
         </div>
 
         {/* Dynamic Chapter creation form */}
-        <div className="glass-card p-5 border-white/5 space-y-4">
+        <div className="glass-card p-5 border-slate-200 dark:border-white/5 space-y-4">
           <button
             onClick={() => setShowChapterForm(!showChapterForm)}
-            className="w-full py-2 bg-slate-900 hover:bg-slate-950 border border-white/5 rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-1 transition-all"
+            className="w-full py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-950 border border-slate-300 dark:border-white/5 rounded-xl text-xs font-semibold text-slate-800 dark:text-white flex items-center justify-center gap-1 transition-all"
           >
             <Plus className="w-4 h-4 text-brand-royal" />
             <span>Configure New Chapter</span>
           </button>
 
           {showChapterForm && (
-            <form onSubmit={handleCreateChapterSubmit} className="space-y-3 pt-3 border-t border-white/5 animate-fade-in-up">
+            <form onSubmit={handleCreateChapterSubmit} className="space-y-3 pt-3 border-t border-slate-200 dark:border-white/5 animate-fade-in-up">
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-slate-500 uppercase">Chapter Title</label>
+                <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase">Chapter Title</label>
                 <input 
                   type="text" 
                   placeholder="e.g. Chapter 3: Electromagnetic Waves" 
@@ -177,13 +177,13 @@ export const ContentUpload: React.FC = () => {
       {/* Right Column: Lecture Publisher Form with Markdown Editor (2 Cols) */}
       <div className="lg:col-span-2 space-y-6">
         
-        <form onSubmit={handleCreateTopicSubmit} className="glass-card p-6 border-white/5 space-y-4">
-          <div className="flex justify-between items-center border-b border-white/5 pb-3 mb-2">
-            <h3 className="text-sm font-display font-extrabold text-white">Publish New Video Topic</h3>
+        <form onSubmit={handleCreateTopicSubmit} className="glass-card p-6 border-slate-200 dark:border-white/5 space-y-4">
+          <div className="flex justify-between items-center border-b border-slate-200 dark:border-white/5 pb-3 mb-2">
+            <h3 className="text-sm font-display font-extrabold text-slate-900 dark:text-white">Publish New Video Topic</h3>
             <button
               type="button"
               onClick={() => setIsPreviewActive(!isPreviewActive)}
-              className="text-xs text-brand-violet-light font-semibold hover:underline flex items-center gap-1"
+              className="text-xs text-brand-violet dark:text-brand-violet-light font-semibold hover:underline flex items-center gap-1"
             >
               {isPreviewActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               <span>{isPreviewActive ? 'Edit Source' : 'Preview Layout'}</span>
@@ -195,10 +195,10 @@ export const ContentUpload: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Topic Title</label>
+                  <label className="text-[10px] font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wide">Topic Title</label>
                   <input 
                     type="text" 
-                    placeholder="e.g. Coulomb\'s Law Applications" 
+                    placeholder="e.g. Coulomb's Law Applications" 
                     value={topicTitle} 
                     onChange={(e) => setTopicTitle(e.target.value)} 
                     className="premium-input text-xs" 
@@ -206,7 +206,7 @@ export const ContentUpload: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Video Duration</label>
+                  <label className="text-[10px] font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wide">Video Duration</label>
                   <input 
                     type="text" 
                     placeholder="e.g. 18m 45s" 
@@ -219,7 +219,7 @@ export const ContentUpload: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mock Video URL (HD MP4)</label>
+                <label className="text-[10px] font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wide">Mock Video URL (HD MP4)</label>
                 <input 
                   type="url" 
                   value={videoUrl} 
@@ -230,7 +230,7 @@ export const ContentUpload: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Lecture Summary Notes (Markdown Editor)</label>
+                <label className="text-[10px] font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wide">Lecture Summary Notes (Markdown Editor)</label>
                 <textarea 
                   value={notesContent} 
                   onChange={(e) => setNotesContent(e.target.value)} 
@@ -242,24 +242,24 @@ export const ContentUpload: React.FC = () => {
           ) : (
             // PREVIEW LAYOUT VIEW
             <div className="space-y-6 animate-fade-in-up">
-              <div className="p-4 rounded-xl bg-slate-900 border border-white/5 space-y-2">
-                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider block">Video Stream Details</span>
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 space-y-2">
+                <span className="text-[9px] text-slate-650 dark:text-slate-500 font-bold uppercase tracking-wider block">Video Stream Details</span>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-white font-bold">{topicTitle || 'No Title Entered'}</span>
-                  <span className="text-slate-400 font-mono">{duration} duration</span>
+                  <span className="text-slate-900 dark:text-white font-bold">{topicTitle || 'No Title Entered'}</span>
+                  <span className="text-slate-700 dark:text-slate-400 font-mono">{duration} duration</span>
                 </div>
               </div>
 
               <div className="space-y-2 text-left">
-                <span className="text-[10px] text-slate-500 font-bold uppercase block">Markdown Compiled Output</span>
-                <div className="p-4 rounded-xl bg-slate-950 border border-white/5 text-xs sm:text-sm text-slate-400 leading-relaxed font-sans whitespace-pre-wrap">
+                <span className="text-[10px] text-slate-650 dark:text-slate-500 font-bold uppercase block">Markdown Compiled Output</span>
+                <div className="p-4 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-250 dark:border-white/5 text-xs sm:text-sm text-slate-800 dark:text-slate-400 leading-relaxed font-sans whitespace-pre-wrap">
                   {notesContent || 'No notes written.'}
                 </div>
               </div>
             </div>
           )}
 
-          <div className="flex justify-between items-center pt-4 border-t border-white/5">
+          <div className="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-white/5">
             <button
               type="button"
               onClick={() => setView('teacher-dash')}

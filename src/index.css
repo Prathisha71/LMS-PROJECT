@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -11,7 +11,8 @@
 
   /* When Light Mode is active, override body background and text */
   .light body {
-    @apply bg-slate-50 text-slate-900;
+    background-color: #FFFFFF;
+    color: #0F172A;
   }
 }
 
@@ -59,12 +60,14 @@
   }
 
   .light .premium-input {
-    @apply bg-white border border-slate-300/80 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-brand-royal/30;
+    @apply bg-white border border-slate-300 text-slate-900 placeholder-slate-500 focus:ring-2 focus:ring-brand-royal/30;
   }
 
   /* Custom button styling */
   .premium-btn-primary {
-    @apply px-6 py-3 rounded-xl bg-gradient-to-r from-brand-royal to-brand-violet hover:from-brand-royal-600 hover:to-brand-violet-dark text-white font-medium shadow-lg shadow-brand-royal/20 transition-all duration-300 hover:shadow-brand-royal/30 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2;
+    background-image: linear-gradient(to right, #2563EB, #7C3AED);
+    color: #FFFFFF;
+    @apply px-6 py-3 rounded-xl hover:opacity-90 font-medium shadow-lg shadow-brand-royal/20 transition-all duration-300 hover:shadow-brand-royal/30 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2;
   }
 
   .premium-btn-secondary {

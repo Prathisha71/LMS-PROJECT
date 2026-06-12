@@ -17,9 +17,48 @@ import { QuizBuilder } from './components/QuizBuilder';
 import { AdminPortal } from './components/AdminPortal';
 import { AdvancedFeatures } from './components/AdvancedFeatures';
 
+import { useEffect } from 'react';
+
 function App() {
-  const { activeView, isDarkMode } = useLmsStore();
+  const { activeView, isDarkMode, setView } = useLmsStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Sync URL hash with the store's activeView to support browser back/forward buttons
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace(/^#\/?/, '');
+      const currentActiveView = useLmsStore.getState().activeView;
+      if (hash && currentActiveView !== hash) {
+        setView(hash);
+      } else if (!hash && currentActiveView !== 'landing') {
+        setView('landing');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+
+    // Sync on initial load
+    const initialHash = window.location.hash.replace(/^#\/?/, '');
+    const currentActiveView = useLmsStore.getState().activeView;
+    if (initialHash && currentActiveView !== initialHash) {
+      setView(initialHash);
+    } else if (!initialHash) {
+      window.location.hash = '/' + currentActiveView;
+    }
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [setView]);
+
+  // Sync window.location.hash when store state updates
+  useEffect(() => {
+    const currentHash = window.location.hash.replace(/^#\/?/, '');
+    if (currentHash !== activeView) {
+      window.location.hash = '/' + activeView;
+    }
+  }, [activeView]);
+
 
   // Define simple routing function based on state
   const renderActiveScreen = () => {
@@ -56,7 +95,7 @@ function App() {
   const isPublicPage = activeView === 'landing' || activeView === 'login' || activeView === 'signup';
 
   return (
-    <div className={`${isDarkMode ? 'dark' : 'light'} min-h-screen bg-slate-50 dark:bg-brand-navy-dark transition-colors duration-300`}>
+    <div className={`${isDarkMode ? 'dark' : 'light'} min-h-screen bg-white dark:bg-brand-navy-dark transition-colors duration-300`}>
       {isPublicPage ? (
         // Public pages do not require Sidebar/Header shells
         <>

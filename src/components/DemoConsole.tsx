@@ -57,7 +57,7 @@ export const DemoConsole: React.FC = () => {
     else if (role === 'admin') setView('admin-structure');
   };
 
-  const triggerMockNotification = (type: 'class' | 'grade' | 'streak') => {
+  const triggerMockNotification = (type: 'class' | 'grade' | 'assignment') => {
     if (type === 'class') {
       addNotification(
         'Live Class is Active',
@@ -72,8 +72,8 @@ export const DemoConsole: React.FC = () => {
       );
     } else {
       addNotification(
-        'Streak Alert!',
-        'Only 3 hours remaining to complete today\'s goal and maintain your 5-day streak!',
+        'Exam Schedule Update',
+        'Class 12 Chemistry: Chapter test on "Metallurgy" is scheduled for Monday morning.',
         'alert'
       );
     }
@@ -101,14 +101,7 @@ export const DemoConsole: React.FC = () => {
               <span>EDUVERSE DEMO PANEL</span>
             </div>
             
-            {/* Theme Toggle */}
-            <button 
-              onClick={() => setTheme(!isDarkMode)}
-              className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-100"
-              title="Toggle Dark/Light Mode"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
+
           </div>
 
           {/* Quick Role Select */}
@@ -172,11 +165,11 @@ export const DemoConsole: React.FC = () => {
                 <span>Quiz Grade</span>
               </button>
               <button 
-                onClick={() => triggerMockNotification('streak')}
+                onClick={() => triggerMockNotification('assignment')}
                 className="py-1 px-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-amber-500/50 hover:bg-slate-900/50 text-[10px] font-medium text-amber-400 flex items-center justify-center gap-1"
               >
                 <Zap className="w-3 h-3" />
-                <span>Streak Alert</span>
+                <span>Exam Schedule</span>
               </button>
             </div>
           </div>

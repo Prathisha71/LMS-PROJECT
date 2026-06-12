@@ -1,29 +1,63 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLmsStore, QuizQuestion, QuizResult } from '../store/useLmsStore';
+import { useLmsStore, QuizQuestion, QuizResult, Chapter, Quiz } from '../store/useLmsStore';
 import { 
   Trophy, Clock, ChevronLeft, ChevronRight, HelpCircle, 
-  CheckCircle, AlertCircle, ArrowRight, ShieldCheck, RefreshCw 
+  CheckCircle, AlertCircle, ArrowRight, ShieldCheck, RefreshCw,
+  BookOpen, Sparkles
 } from 'lucide-react';
+import { generateQuizForChapter } from '../utils/quizGenerator';
 
 export const QuizInterface: React.FC = () => {
   const { 
-    quizzes, activeQuizId, setActiveQuiz, submitQuizResult, setView, setActiveCourseContext 
+    boards, quizzes, activeQuizId, setActiveQuiz, submitQuizResult, setView, setActiveCourseContext, profile 
   } = useLmsStore();
 
-  const activeQuiz = quizzes.find(q => q.id === activeQuizId) || quizzes[0];
+  const activeBoard = boards.find(b => b.id === 'tnsb') || boards[0];
 
-  // States
+  // Selection states (Class-level and Subject-level selections)
+  const [selectedClassId, setSelectedClassId] = useState(profile.selectedClassId || 'class-9');
+  const [selectedSubjectId, setSelectedSubjectId] = useState(profile.optedSubjectId || 'maths-9');
+  const [currentGeneratedQuiz, setCurrentGeneratedQuiz] = useState<Quiz | null>(null);
+
+  // Sync selectedClassId with registered profile class
+  useEffect(() => {
+    if (profile.selectedClassId) {
+      setSelectedClassId(profile.selectedClassId);
+      const activeClass = activeBoard?.classes.find(c => c.id === profile.selectedClassId) || activeBoard?.classes[0];
+      const classSubjects = activeClass?.subjects || [];
+      if (classSubjects.length > 0 && !classSubjects.some(s => s.id === selectedSubjectId)) {
+        setSelectedSubjectId(classSubjects[0].id);
+      }
+    }
+  }, [profile.selectedClassId, activeBoard]);
+
+  // If a quiz is selected globally via activeQuizId, use it; otherwise use the local generated quiz.
+  const globalQuiz = quizzes.find(q => q.id === activeQuizId);
+  const activeQuiz = globalQuiz || currentGeneratedQuiz;
+
+  // Active Quiz States
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
-  const [timeLeftSeconds, setTimeLeftSeconds] = useState(activeQuiz ? activeQuiz.durationMinutes * 60 : 600);
+  const [timeLeftSeconds, setTimeLeftSeconds] = useState(600);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [result, setResult] = useState<QuizResult | null>(null);
 
   const timerRef = useRef<number | null>(null);
 
+  // Sync state when activeQuizId or activeQuiz changes
+  useEffect(() => {
+    if (activeQuiz) {
+      setTimeLeftSeconds(activeQuiz.durationMinutes * 60);
+      setCurrentQuestionIndex(0);
+      setSelectedAnswers({});
+      setIsSubmitted(false);
+      setResult(null);
+    }
+  }, [activeQuizId, activeQuiz?.id]);
+
   // Timer Countdown
   useEffect(() => {
-    if (!isSubmitted) {
+    if (activeQuiz && !isSubmitted) {
       timerRef.current = window.setInterval(() => {
         setTimeLeftSeconds((prev) => {
           if (prev <= 1) {
@@ -37,7 +71,7 @@ export const QuizInterface: React.FC = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isSubmitted]);
+  }, [isSubmitted, activeQuiz?.id]);
 
   const formatTime = (secs: number) => {
     const mins = Math.floor(secs / 60);
@@ -58,12 +92,30 @@ export const QuizInterface: React.FC = () => {
   };
 
   const handleQuizSubmit = () => {
-    if (isSubmitted) return;
+    if (!activeQuiz || isSubmitted) return;
     setIsSubmitted(true);
     if (timerRef.current) clearInterval(timerRef.current);
 
     let score = 0;
     const incorrectDetails: QuizResult['incorrectAnswersDetails'] = [];
+
+    // Find first topic of the chapter being quizzed to use as recommendedTopicId
+    let firstTopicId = '';
+    const chapterId = activeQuiz.id.replace('quiz-gen-', '');
+    for (const b of boards) {
+      for (const c of b.classes) {
+        for (const s of c.subjects) {
+          const chap = s.chapters.find(ch => ch.id === chapterId);
+          if (chap && chap.topics.length > 0) {
+            firstTopicId = chap.topics[0].id;
+            break;
+          }
+        }
+      }
+    }
+    if (!firstTopicId) {
+      firstTopicId = activeQuiz.subjectId === 'maths-12' ? 'matrices-determinants-12-t1' : 'chemistry-12-c1-t1';
+    }
 
     activeQuiz.questions.forEach((q) => {
       const selected = selectedAnswers[q.id];
@@ -75,7 +127,7 @@ export const QuizInterface: React.FC = () => {
           yourAnswer: selected !== undefined ? q.options[selected] : 'Not Attempted',
           correctAnswer: q.options[q.correctAnswerIndex],
           explanation: q.explanation,
-          recommendedTopicId: 'coulomb-law' // Link to mock remedial topic
+          recommendedTopicId: firstTopicId
         });
       }
     });
@@ -104,6 +156,7 @@ export const QuizInterface: React.FC = () => {
   };
 
   const handleResetQuiz = () => {
+    if (!activeQuiz) return;
     setCurrentQuestionIndex(0);
     setSelectedAnswers({});
     setTimeLeftSeconds(activeQuiz.durationMinutes * 60);
@@ -111,16 +164,156 @@ export const QuizInterface: React.FC = () => {
     setResult(null);
   };
 
+  const handleExitQuiz = () => {
+    setActiveQuiz(null); // Clear global store quiz selection
+    setCurrentGeneratedQuiz(null);
+    setIsSubmitted(false);
+    setResult(null);
+    setSelectedAnswers({});
+    setCurrentQuestionIndex(0);
+  };
+
+  const handleStartChapterQuiz = (chapter: Chapter) => {
+    const generatedQuiz = generateQuizForChapter(selectedClassId, selectedSubjectId, chapter.id, chapter.title);
+    setCurrentGeneratedQuiz(generatedQuiz);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers({});
+    setTimeLeftSeconds(generatedQuiz.durationMinutes * 60);
+    setIsSubmitted(false);
+    setResult(null);
+  };
+
   const handleRemedialJump = (topicId: string) => {
-    setActiveCourseContext('physics-12', 'electrostatics', topicId);
+    let foundSubjectId = '';
+    let foundChapterId = '';
+
+    for (const board of boards) {
+      for (const cls of board.classes) {
+        for (const sub of cls.subjects) {
+          for (const chap of sub.chapters) {
+            if (chap.topics.some(t => t.id === topicId)) {
+              foundSubjectId = sub.id;
+              foundChapterId = chap.id;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (foundSubjectId && foundChapterId) {
+      setActiveCourseContext(foundSubjectId, foundChapterId, topicId);
+    } else {
+      // Fallback
+      if (activeQuiz?.subjectId === 'maths-12') {
+        setActiveCourseContext('maths-12', 'matrices-determinants-12', topicId);
+      } else {
+        setActiveCourseContext('chemistry-12', 'metallurgy-12', topicId);
+      }
+    }
     setView('course-view');
   };
 
+  // Derive helper objects for the dashboard selectors
+  const activeClass = activeBoard?.classes.find(c => c.id === selectedClassId) || activeBoard?.classes[0];
+  const subjects = activeClass?.subjects || [];
+  const activeSubject = subjects.find(s => s.id === selectedSubjectId) || subjects[0];
+  const chapters = activeSubject?.chapters || [];
+
+  // ==========================================
+  // VIEW: CHAPTER SELECTION DASHBOARD
+  // ==========================================
   if (!activeQuiz) {
     return (
-      <div className="py-12 text-center glass-card border-white/5 font-sans">
-        <h3 className="text-lg font-bold text-white mb-2">No active quizzes</h3>
-        <p className="text-xs text-slate-400">Educator dashboard lets you configure new MCQ sheets.</p>
+      <div className="max-w-4xl mx-auto font-sans space-y-6 text-left animate-fade-in-up">
+        {/* Banner Card */}
+        <div className="glass-card p-6 border-slate-200 dark:border-white/5 bg-gradient-to-r from-brand-royal/5 via-brand-violet/5 to-transparent flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span className="text-[10px] text-brand-violet dark:text-brand-violet-light font-bold uppercase tracking-wider block">Assessment Hub</span>
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mt-1">Scholastic Quiz Center</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              Select your class and subject to view all chapters. Take timed assessments to verify your syllabus mastery.
+            </p>
+          </div>
+        </div>
+
+        {/* Filters Grid */}
+        <div className="grid grid-cols-1 gap-4">
+          {/* Subject selector */}
+          <div className="glass-card p-5 border-slate-200 dark:border-white/5 space-y-3">
+            <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Select Subject</label>
+            <div className="flex gap-2">
+              {subjects.map((sub) => {
+                const isSelected = selectedSubjectId === sub.id;
+                return (
+                  <button
+                    key={sub.id}
+                    onClick={() => setSelectedSubjectId(sub.id)}
+                    className={`py-2 px-6 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-brand-violet to-fuchsia-600 border-brand-violet text-white shadow-md'
+                        : 'bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>{sub.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Chapters Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-2">
+            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+              Available Chapter Assessments ({chapters.length})
+            </h4>
+            <span className="text-[10px] text-slate-605 dark:text-slate-500 font-bold bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-200 dark:border-white/5">
+              Class {selectedClassId.replace('class-', '')} • {activeSubject?.title}
+            </span>
+          </div>
+
+          {chapters.length === 0 ? (
+            <div className="glass-card p-12 text-center border-slate-200 dark:border-white/5">
+              <p className="text-xs text-slate-500">No chapters defined for this subject.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up">
+              {chapters.map((chap) => (
+                <div key={chap.id} className="glass-card p-5 border-slate-200 dark:border-white/5 flex flex-col justify-between hover:border-brand-royal/20 transition-all hover:scale-[1.01] hover:shadow-lg hover:shadow-brand-royal/5 text-left">
+                  <div className="space-y-2">
+                    <span className="text-[9px] font-extrabold text-brand-violet bg-brand-violet/5 border border-brand-violet/15 px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+                      Chapter Module
+                    </span>
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white mt-1 leading-snug">{chap.title}</h4>
+                    <p className="text-[11px] text-slate-605 dark:text-slate-400 leading-normal line-clamp-2">
+                      Test your understanding of the concepts introduced in this chapter of the Class {selectedClassId.replace('class-', '')} Samacheer Kalvi syllabus.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-slate-200 dark:border-white/5 pt-4 mt-4">
+                    <div className="flex items-center gap-3 text-[10px] text-slate-500 font-semibold">
+                      <span className="flex items-center gap-1">
+                        <HelpCircle className="w-3.5 h-3.5" /> 15 MCQs
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" /> 15 Mins
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleStartChapterQuiz(chap)}
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-brand-royal dark:bg-slate-900 border border-slate-200 dark:border-white/5 hover:border-brand-royal/30 text-xs font-bold text-brand-royal hover:text-white dark:hover:text-white transition-all active:scale-95 flex items-center gap-1"
+                    >
+                      <span>Start Quiz</span>
+                      <ChevronRight className="w-3.5 h-3.5 animate-pulse" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -128,30 +321,41 @@ export const QuizInterface: React.FC = () => {
   const currentQuestion: QuizQuestion = activeQuiz.questions[currentQuestionIndex];
   const totalQuestions = activeQuiz.questions.length;
 
+  // ==========================================
+  // VIEW: ACTIVE TEST & RESULTS INTERFACES
+  // ==========================================
   return (
     <div className="max-w-3xl mx-auto font-sans">
       {!isSubmitted ? (
         // ACTIVE TEST INTERFACE
         <div className="space-y-6 animate-fade-in-up">
           {/* Header Bar */}
-          <div className="glass-card p-5 border-white/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="glass-card p-5 border-slate-200 dark:border-white/5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left">
             <div>
-              <span className="text-[10px] text-brand-violet-light font-bold uppercase tracking-wider">Assessment Sheet</span>
-              <h3 className="text-base font-bold text-white mt-0.5">{activeQuiz.title}</h3>
+              <span className="text-[10px] text-brand-violet dark:text-brand-violet-light font-bold uppercase tracking-wider">Active Assessment</span>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">{activeQuiz.title}</h3>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/5 text-xs text-slate-300 font-mono">
-                <Clock className="w-4.5 h-4.5 text-brand-violet-light" />
+              <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 text-xs text-slate-700 dark:text-slate-300 font-mono">
+                <Clock className="w-4.5 h-4.5 text-brand-violet" />
                 <span>Timer: {formatTime(timeLeftSeconds)}</span>
               </div>
               
-              <button
-                onClick={handleQuizSubmit}
-                className="premium-btn-primary py-2 px-4 text-xs font-semibold"
-              >
-                Submit Exam
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleExitQuiz}
+                  className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-red-500/10 border border-slate-200 dark:bg-slate-900 dark:border-white/5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-red-500 transition-all active:scale-95"
+                >
+                  Exit
+                </button>
+                <button
+                  onClick={handleQuizSubmit}
+                  className="premium-btn-primary py-2 px-4 text-xs font-semibold"
+                >
+                  Submit Exam
+                </button>
+              </div>
             </div>
           </div>
 
@@ -169,8 +373,8 @@ export const QuizInterface: React.FC = () => {
                       isActive
                         ? 'border-brand-royal bg-brand-royal text-white shadow-lg'
                         : isSelected
-                        ? 'border-brand-violet-light/30 bg-brand-violet/10 text-brand-violet-light'
-                        : 'border-white/5 bg-slate-900 text-slate-400'
+                        ? 'border-brand-violet/30 bg-brand-violet/10 text-brand-violet'
+                        : 'border-slate-200 dark:border-white/5 bg-slate-105 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                   >
                     {idx + 1}
@@ -184,10 +388,10 @@ export const QuizInterface: React.FC = () => {
           </div>
 
           {/* Question Sheet */}
-          <div className="glass-card p-6 border-white/5 text-left space-y-6">
+          <div className="glass-card p-6 border-slate-200 dark:border-white/5 text-left space-y-6">
             <div className="flex gap-3 items-start">
-              <span className="text-sm font-bold text-brand-violet-light uppercase tracking-wider mt-0.5">Q{currentQuestionIndex + 1}.</span>
-              <h4 className="text-sm sm:text-base font-medium text-slate-100 leading-relaxed">
+              <span className="text-sm font-bold text-brand-violet uppercase tracking-wider mt-0.5">Q{currentQuestionIndex + 1}.</span>
+              <h4 className="text-sm sm:text-base font-medium text-slate-900 dark:text-slate-100 leading-relaxed">
                 {currentQuestion.question}
               </h4>
             </div>
@@ -203,12 +407,12 @@ export const QuizInterface: React.FC = () => {
                     onClick={() => handleOptionSelect(currentQuestion.id, idx)}
                     className={`w-full p-4 rounded-xl border text-left text-xs sm:text-sm transition-all flex items-center gap-3 ${
                       isChosen
-                        ? 'border-brand-royal bg-brand-royal/10 text-white shadow-lg'
-                        : 'border-white/5 bg-slate-900/40 hover:bg-slate-900 text-slate-400 hover:text-slate-200'
+                        ? 'border-brand-royal bg-brand-royal/10 text-brand-royal dark:text-white shadow-lg'
+                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-white/5 dark:bg-slate-900/40 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                     }`}
                   >
                     <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
-                      isChosen ? 'bg-brand-royal text-white' : 'bg-slate-950 text-slate-500'
+                      isChosen ? 'bg-brand-royal text-white' : 'bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-500'
                     }`}>
                       {letter}
                     </span>
@@ -233,7 +437,7 @@ export const QuizInterface: React.FC = () => {
             {currentQuestionIndex < totalQuestions - 1 ? (
               <button
                 onClick={() => setCurrentQuestionIndex(prev => Math.min(totalQuestions - 1, prev + 1))}
-                className="premium-btn-primary px-4 py-2 text-xs flex items-center gap-1.5"
+                className="px-5 py-2 rounded-xl bg-brand-royal hover:bg-brand-royal/90 text-white text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-md shadow-brand-royal/20"
               >
                 <span>Next</span>
                 <ChevronRight className="w-4 h-4" />
@@ -241,7 +445,7 @@ export const QuizInterface: React.FC = () => {
             ) : (
               <button
                 onClick={handleQuizSubmit}
-                className="premium-btn-primary px-6 py-2.5 text-xs font-bold"
+                className="px-6 py-2.5 rounded-xl bg-brand-royal hover:bg-brand-royal/90 text-white text-xs font-bold transition-all active:scale-95 shadow-md shadow-brand-royal/20"
               >
                 Submit Exam
               </button>
@@ -250,9 +454,9 @@ export const QuizInterface: React.FC = () => {
         </div>
       ) : (
         // RESULTS SHEET SUMMARY
-        <div className="space-y-6 animate-fade-in-up">
+        <div className="space-y-6 animate-fade-in-up text-left">
           {/* Main Results Card */}
-          <div className="glass-card p-8 border-violet-500/20 bg-gradient-to-b from-brand-violet/5 to-transparent text-center space-y-6 relative overflow-hidden">
+          <div className="glass-card p-8 border-slate-200 dark:border-violet-500/20 bg-gradient-to-b from-brand-violet/5 to-transparent text-center space-y-6 relative overflow-hidden">
             {/* Glow */}
             <div className="absolute top-0 right-1/4 w-32 h-32 bg-brand-violet/10 blur-[80px] rounded-full" />
             
@@ -261,25 +465,25 @@ export const QuizInterface: React.FC = () => {
             </div>
 
             <div>
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Evaluation Complete</span>
-              <h3 className="text-xl font-extrabold text-white mt-1">{activeQuiz.title} Results</h3>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">Evaluation Complete</span>
+              <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mt-1">{activeQuiz.title} Results</h3>
             </div>
 
             {/* Score Ring */}
             <div className="flex justify-center items-center gap-8 py-4">
               <div className="text-center">
-                <span className="text-4xl font-black text-white">{result?.score}</span>
-                <span className="text-slate-500 text-lg"> / {result?.totalQuestions}</span>
+                <span className="text-4xl font-black text-slate-900 dark:text-white">{result?.score}</span>
+                <span className="text-slate-555 text-lg"> / {result?.totalQuestions}</span>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Correct Answers</p>
               </div>
-              <div className="w-[1px] h-12 bg-white/10" />
+              <div className="w-[1px] h-12 bg-slate-200 dark:bg-white/10" />
               <div className="text-center">
-                <span className="text-xl font-extrabold text-white">{result ? Math.round((result.score / result.totalQuestions) * 100) : 0}%</span>
+                <span className="text-xl font-extrabold text-slate-900 dark:text-white">{result ? Math.round((result.score / result.totalQuestions) * 100) : 0}%</span>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-3">Final Grade</p>
               </div>
-              <div className="w-[1px] h-12 bg-white/10" />
+              <div className="w-[1px] h-12 bg-slate-200 dark:bg-white/10" />
               <div className="text-center font-mono">
-                <span className="text-xl font-extrabold text-slate-200">{result ? formatTime(result.timeTakenSeconds) : '00:00'}</span>
+                <span className="text-xl font-extrabold text-slate-800 dark:text-slate-200">{result ? formatTime(result.timeTakenSeconds) : '00:00'}</span>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-3">Time taken</p>
               </div>
             </div>
@@ -294,66 +498,85 @@ export const QuizInterface: React.FC = () => {
               </button>
               
               <button
-                onClick={() => setView('student-dash')}
-                className="premium-btn-primary px-5 py-2.5 text-xs font-semibold"
+                onClick={handleExitQuiz}
+                className="premium-btn-primary px-5 py-2.5 text-xs font-semibold flex items-center gap-1.5"
               >
                 <span>Back to Hub</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Remedial AI Suggestions / Incorrect Answers Review */}
           <div className="space-y-4">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest text-left">Weak Area Review & AI Recommendations</h4>
+            <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Weak Area Review & AI Recommendations</h4>
             
             {result?.incorrectAnswersDetails.length === 0 ? (
-              <div className="glass-card p-6 border-white/5 flex gap-4 text-left items-start">
+              <div className="glass-card p-6 border-slate-200 dark:border-white/5 flex gap-4 text-left items-start">
                 <CheckCircle className="w-6 h-6 text-emerald-500 flex-shrink-0" />
                 <div>
-                  <h4 className="text-sm font-bold text-white">Flawless Conceptual Mastery!</h4>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white">Flawless Conceptual Mastery!</h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                     You answered all questions correctly. No remedial reading is recommended. You received a perfect score certificate in your profile panel!
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 text-left">
                 {result?.incorrectAnswersDetails.map((detail, idx) => (
-                  <div key={idx} className="glass-card p-5 border-white/5 text-left space-y-4">
+                  <div key={idx} className="glass-card p-5 border-slate-200 dark:border-white/5 text-left space-y-4">
                     <div>
-                      <span className="text-[9px] bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-full font-bold uppercase">
+                      <span className="text-[9px] bg-red-500/10 text-red-600 border border-red-500/20 px-2 py-0.5 rounded-full font-bold uppercase">
                         Review Question {idx + 1}
                       </span>
-                      <h4 className="text-xs sm:text-sm font-bold text-white mt-3 leading-relaxed">
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-3 leading-relaxed">
                         {detail.question}
                       </h4>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                      <div className="p-3 rounded-lg bg-slate-900 border border-white/5">
+                      <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5">
                         <span className="text-[9px] text-slate-500 font-bold uppercase">Your Choice:</span>
-                        <p className="text-slate-300 font-medium mt-1">{detail.yourAnswer}</p>
+                        <p className="text-slate-800 dark:text-slate-300 font-medium mt-1">{detail.yourAnswer}</p>
                       </div>
                       <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
-                        <span className="text-[9px] text-emerald-400 font-bold uppercase">Correct Answer:</span>
-                        <p className="text-emerald-300 font-medium mt-1">{detail.correctAnswer}</p>
+                        <span className="text-[9px] text-emerald-600 font-bold uppercase">Correct Answer:</span>
+                        <p className="text-emerald-700 dark:text-emerald-300 font-medium mt-1">{detail.correctAnswer}</p>
                       </div>
                     </div>
 
-                    <div className="p-3 rounded-lg bg-slate-950/60 border border-white/5 text-xs text-slate-400">
-                      <span className="text-[9px] text-brand-violet-light font-bold uppercase block mb-1">Explanation:</span>
+                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-white/5 text-xs text-slate-650 dark:text-slate-400">
+                      <span className="text-[9px] text-brand-violet font-bold uppercase block mb-1">Explanation:</span>
                       <p className="leading-relaxed">{detail.explanation}</p>
                     </div>
 
                     {/* AI Remedial Recommendation Action */}
-                    <div className="p-3.5 rounded-xl bg-gradient-to-r from-brand-violet/10 to-transparent border-l-2 border-brand-violet flex items-center justify-between">
+                    <div className="p-3.5 rounded-xl bg-gradient-to-r from-brand-violet/5 to-transparent border-l-2 border-brand-violet flex items-center justify-between">
                       <div className="text-xs text-left">
-                        <span className="text-[9px] text-brand-violet-light font-extrabold uppercase">AI Recommendation</span>
-                        <p className="text-slate-300 font-semibold mt-0.5">Read: 1.1 Coulomb\'s Law and Field Strength</p>
+                        <span className="text-[9px] text-brand-violet font-extrabold uppercase">AI Recommendation</span>
+                        <p className="text-slate-800 dark:text-slate-300 font-semibold mt-0.5">
+                          Read: {(() => {
+                            let recommendedTopicTitle = '';
+                            for (const b of boards) {
+                              for (const c of b.classes) {
+                                for (const s of c.subjects) {
+                                  for (const ch of s.chapters) {
+                                    const topic = ch.topics.find(t => t.id === detail.recommendedTopicId);
+                                    if (topic) {
+                                      recommendedTopicTitle = topic.title;
+                                      break;
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                            return recommendedTopicTitle || 'Chapter Concepts';
+                          })()}
+                        </p>
                       </div>
                       <button
                         onClick={() => handleRemedialJump(detail.recommendedTopicId)}
-                        className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-brand-violet hover:text-white text-[10px] font-bold text-brand-violet-light transition-all flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-brand-violet hover:text-white border border-slate-200 dark:bg-slate-900 dark:border-transparent text-[10px] font-bold text-brand-violet hover:text-white dark:hover:text-white transition-all flex items-center gap-1"
                       >
                         <span>Study Topic</span>
                         <ArrowRight className="w-3 h-3" />

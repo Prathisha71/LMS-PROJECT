@@ -6,9 +6,12 @@ export const QuizBuilder: React.FC = () => {
   const { boards, createQuiz, setView } = useLmsStore();
 
   // Categories
-  const [boardId] = useState('cbse');
-  const [classId] = useState('class-12');
-  const [subjectId, setSubjectId] = useState('physics-12');
+  const [boardId, setBoardId] = useState('tnsb');
+  const [classId, setClassId] = useState('class-12');
+  const [subjectId, setSubjectId] = useState('maths-12');
+
+  const activeBoard = boards.find(b => b.id === boardId) || boards[0];
+  const activeClass = activeBoard.classes.find(c => c.id === classId) || activeBoard.classes[0];
 
   // Quiz info
   const [quizTitle, setQuizTitle] = useState('');
@@ -84,30 +87,58 @@ export const QuizBuilder: React.FC = () => {
       
       {/* Left Column: Category selector & Added Questions summary */}
       <div className="space-y-6">
-        <div className="glass-card p-5 border-white/5 space-y-4">
-          <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+        <div className="glass-card p-5 border-slate-200 dark:border-white/5 space-y-4">
+          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/5 pb-3">
             <BookOpen className="w-4.5 h-4.5 text-brand-royal" />
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Syllabus Link</h3>
+            <h3 className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-widest">Syllabus Link</h3>
           </div>
 
           <div className="space-y-3">
+            {/* Board Selector */}
+            <div className="space-y-1">
+              <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase tracking-wide">Board Standard</label>
+              <select 
+                value={boardId} 
+                onChange={(e) => setBoardId(e.target.value)}
+                className="premium-input text-xs"
+              >
+                {boards.map(b => (
+                  <option key={b.id} value={b.id} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">{b.title}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Class Selector */}
+            <div className="space-y-1">
+              <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase tracking-wide">Class Grade</label>
+              <select 
+                value={classId} 
+                onChange={(e) => setClassId(e.target.value)}
+                className="premium-input text-xs"
+              >
+                {activeBoard.classes.map(c => (
+                  <option key={c.id} value={c.id} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">{c.title}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Subject Selector */}
             <div className="space-y-1">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Target Subject</label>
+              <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase tracking-wide">Target Subject</label>
               <select 
                 value={subjectId} 
                 onChange={(e) => setSubjectId(e.target.value)}
                 className="premium-input text-xs"
               >
-                <option value="physics-12" className="bg-slate-950">Class 12 Physics</option>
-                <option value="chemistry-12" className="bg-slate-950">Class 12 Chemistry</option>
-                <option value="maths-12" className="bg-slate-950">Class 12 Mathematics</option>
+                {activeClass?.subjects.map(s => (
+                  <option key={s.id} value={s.id} className="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">{s.title}</option>
+                ))}
               </select>
             </div>
 
             {/* Quiz Title */}
             <div className="space-y-1">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Quiz Title</label>
+              <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase tracking-wide">Quiz Title</label>
               <input
                 type="text"
                 placeholder="e.g. Chapter 1: Potential Numerical Test"
@@ -120,7 +151,7 @@ export const QuizBuilder: React.FC = () => {
 
             {/* Duration Minutes */}
             <div className="space-y-1">
-              <label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Timer (Minutes)</label>
+              <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase tracking-wide">Timer (Minutes)</label>
               <input
                 type="number"
                 value={durationMinutes}
@@ -133,23 +164,23 @@ export const QuizBuilder: React.FC = () => {
         </div>
 
         {/* Questions list summary */}
-        <div className="glass-card p-5 border-white/5 space-y-4">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Questions Added ({questionsList.length})</span>
+        <div className="glass-card p-5 border-slate-200 dark:border-white/5 space-y-4">
+          <span className="text-[10px] font-bold text-slate-655 dark:text-slate-500 uppercase tracking-wider block">Questions Added ({questionsList.length})</span>
           {questionsList.length === 0 ? (
-            <p className="text-xs text-slate-500 text-center py-6">Use the constructor on the right to add MCQs.</p>
+            <p className="text-xs text-slate-650 dark:text-slate-500 text-center py-6">Use the constructor on the right to add MCQs.</p>
           ) : (
             <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
               {questionsList.map((q, idx) => (
                 <div 
                   key={idx} 
-                  className="p-3.5 rounded-xl bg-slate-950/60 border border-white/5 flex items-center justify-between hover:border-white/10 transition-colors"
+                  className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-white/5 flex items-center justify-between hover:border-slate-350 dark:hover:border-white/10 transition-colors"
                 >
-                  <div className="text-xs font-semibold text-slate-200 truncate pr-4">
+                  <div className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate pr-4">
                     <span>Q{idx + 1}. {q.question}</span>
                   </div>
                   <button
                     onClick={() => handleDeleteAddedQuestion(idx)}
-                    className="p-1 text-slate-500 hover:text-red-400"
+                    className="p-1 text-slate-650 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-400"
                     title="Remove question"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -174,16 +205,16 @@ export const QuizBuilder: React.FC = () => {
       {/* Right Column: Question Constructor form (2 Cols) */}
       <div className="lg:col-span-2 space-y-6">
         
-        <div className="glass-card p-6 border-white/5 space-y-4">
-          <div className="flex items-center gap-2 border-b border-white/5 pb-3">
-            <PenTool className="w-4.5 h-4.5 text-brand-violet-light" />
-            <h3 className="text-sm font-display font-extrabold text-white">Construct MCQ</h3>
+        <div className="glass-card p-6 border-slate-200 dark:border-white/5 space-y-4">
+          <div className="flex items-center gap-2 border-b border-slate-200 dark:border-white/5 pb-3">
+            <PenTool className="w-4.5 h-4.5 text-brand-violet dark:text-brand-violet-light" />
+            <h3 className="text-sm font-display font-extrabold text-slate-900 dark:text-white">Construct MCQ</h3>
           </div>
 
           <div className="space-y-4 text-xs">
             {/* Question Text */}
             <div className="space-y-1.5 text-left">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Question Prompt</label>
+              <label className="text-[10px] font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wide">Question Prompt</label>
               <textarea 
                 value={questionText} 
                 onChange={(e) => setQuestionText(e.target.value)} 
@@ -196,7 +227,7 @@ export const QuizBuilder: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
               {options.map((opt, idx) => (
                 <div key={idx} className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase">Option {String.fromCharCode(65 + idx)}</label>
+                  <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase">Option {String.fromCharCode(65 + idx)}</label>
                   <input
                     type="text"
                     value={opt}
@@ -210,7 +241,7 @@ export const QuizBuilder: React.FC = () => {
 
             {/* Correct Choice Index */}
             <div className="space-y-1.5 text-left">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Mark Correct Answer Option</label>
+              <label className="text-[10px] font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wide">Mark Correct Answer Option</label>
               <div className="grid grid-cols-4 gap-2">
                 {[0, 1, 2, 3].map((idx) => {
                   const letter = String.fromCharCode(65 + idx);
@@ -223,7 +254,7 @@ export const QuizBuilder: React.FC = () => {
                       className={`py-2 rounded-xl border font-bold text-xs transition-all ${
                         isActive
                           ? 'border-brand-royal bg-brand-royal text-white shadow-md'
-                          : 'border-white/5 bg-slate-900 text-slate-500 hover:text-slate-300'
+                          : 'border-slate-250 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-500 hover:text-slate-900 dark:hover:text-slate-300'
                       }`}
                     >
                       Option {letter}
@@ -235,7 +266,7 @@ export const QuizBuilder: React.FC = () => {
 
             {/* Concept Explanation */}
             <div className="space-y-1.5 text-left">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">AI Explanatory Solution (Provided to students upon review)</label>
+              <label className="text-[10px] font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wide">AI Explanatory Solution (Provided to students upon review)</label>
               <textarea 
                 value={explanation} 
                 onChange={(e) => setExplanation(e.target.value)} 
@@ -245,7 +276,7 @@ export const QuizBuilder: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-between items-center pt-4 border-t border-white/5">
+          <div className="flex justify-between items-center pt-4 border-t border-slate-200 dark:border-white/5">
             <button
               type="button"
               onClick={() => setView('teacher-dash')}

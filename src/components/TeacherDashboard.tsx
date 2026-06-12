@@ -49,12 +49,12 @@ export const TeacherDashboard: React.FC = () => {
         {kpis.map((kpi, idx) => {
           const Icon = kpi.icon;
           return (
-            <div key={idx} className="glass-card p-5 border-white/5 flex items-center justify-between">
+            <div key={idx} className="glass-card p-5 border-slate-200 dark:border-white/5 flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">{kpi.label}</span>
-                <span className="text-lg sm:text-xl font-extrabold text-white mt-1 block">{kpi.value}</span>
+                <span className="text-[10px] text-slate-650 dark:text-slate-400 font-bold uppercase tracking-wider block">{kpi.label}</span>
+                <span className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white mt-1 block">{kpi.value}</span>
               </div>
-              <div className={`w-10 h-10 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center ${kpi.color}`}>
+              <div className={`w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/5 flex items-center justify-center ${kpi.color}`}>
                 <Icon className="w-5 h-5" />
               </div>
             </div>
@@ -70,30 +70,30 @@ export const TeacherDashboard: React.FC = () => {
           
           {/* Quick Creator shortcuts */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="glass-card p-6 border-white/5 bg-gradient-to-r from-brand-royal/10 to-transparent flex flex-col justify-between min-h-[150px]">
+            <div className="glass-card p-6 border-slate-200 dark:border-white/5 bg-gradient-to-r from-brand-royal/10 to-transparent flex flex-col justify-between min-h-[150px]">
               <div>
                 <Upload className="w-6 h-6 text-brand-royal" />
-                <h4 className="text-base font-bold text-white mt-3">Upload Lecture Material</h4>
-                <p className="text-xs text-slate-400 mt-1">Publish new HD MP4 classes, PDFs, and textbook chapters for scholars.</p>
+                <h4 className="text-base font-bold text-slate-900 dark:text-white mt-3">Upload Lecture Material</h4>
+                <p className="text-xs text-slate-700 dark:text-slate-400 mt-1">Publish new HD MP4 classes, PDFs, and textbook chapters for scholars.</p>
               </div>
               <button 
                 onClick={() => setView('content-upload')}
-                className="mt-4 py-2 rounded-xl bg-slate-900 border border-white/5 text-white hover:bg-slate-950 hover:border-brand-royal/30 text-xs font-semibold flex items-center justify-center gap-1 transition-all active:scale-95"
+                className="mt-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-350 dark:border-white/5 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-950 hover:border-brand-royal/30 text-xs font-semibold flex items-center justify-center gap-1 transition-all active:scale-95"
               >
                 <span>Open upload center</span>
                 <ChevronRight className="w-4 h-4 text-brand-royal" />
               </button>
             </div>
 
-            <div className="glass-card p-6 border-white/5 bg-gradient-to-r from-brand-violet/10 to-transparent flex flex-col justify-between min-h-[150px]">
+            <div className="glass-card p-6 border-slate-200 dark:border-white/5 bg-gradient-to-r from-brand-violet/10 to-transparent flex flex-col justify-between min-h-[150px]">
               <div>
                 <PenTool className="w-6 h-6 text-brand-violet-light" />
-                <h4 className="text-base font-bold text-white mt-3">Dynamic Test Constructor</h4>
-                <p className="text-xs text-slate-400 mt-1">Configure timed MCQ tests with custom explanations and AI triggers.</p>
+                <h4 className="text-base font-bold text-slate-900 dark:text-white mt-3">Dynamic Test Constructor</h4>
+                <p className="text-xs text-slate-700 dark:text-slate-400 mt-1">Configure timed MCQ tests with custom explanations and AI triggers.</p>
               </div>
               <button 
                 onClick={() => setView('quiz-builder')}
-                className="mt-4 py-2 rounded-xl bg-slate-900 border border-white/5 text-white hover:bg-slate-950 hover:border-brand-violet/30 text-xs font-semibold flex items-center justify-center gap-1 transition-all active:scale-95"
+                className="mt-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-350 dark:border-white/5 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-950 hover:border-brand-violet/30 text-xs font-semibold flex items-center justify-center gap-1 transition-all active:scale-95"
               >
                 <span>Construct exam sheet</span>
                 <ChevronRight className="w-4 h-4 text-brand-violet-light" />
@@ -102,14 +102,14 @@ export const TeacherDashboard: React.FC = () => {
           </div>
 
           {/* Simulated Cohort Analytics Chart */}
-          <div className="glass-card p-6 border-white/5 space-y-4">
+          <div className="glass-card p-6 border-slate-200 dark:border-white/5 space-y-4">
             <div>
-              <h4 className="text-base font-bold text-white">Engagement Heatmap</h4>
-              <p className="text-xs text-slate-500">Hourly student lecture completion rate across physics, chemistry, and mathematics.</p>
+              <h4 className="text-base font-bold text-slate-900 dark:text-white">Engagement Heatmap</h4>
+              <p className="text-xs text-slate-650 dark:text-slate-500">Hourly student lecture completion rate across chemistry and mathematics.</p>
             </div>
 
             {/* Custom Grid representation for Heatmap */}
-            <div className="grid grid-cols-7 gap-2 pt-4 border-b border-white/5 pb-4">
+            <div className="grid grid-cols-7 gap-2 pt-4 border-b border-slate-200 dark:border-white/5 pb-4">
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
                 <div key={day} className="text-center">
                   <span className="text-[10px] text-slate-500 font-bold block mb-2">{day}</span>
@@ -131,42 +131,42 @@ export const TeacherDashboard: React.FC = () => {
         <div className="space-y-6">
           
           {/* Homework Action Panel */}
-          <div className="glass-card p-5 border-white/5 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/5 pb-3">
+          <div className="glass-card p-5 border-slate-200 dark:border-white/5 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-3">
               <div className="flex items-center gap-2">
                 <FileText className="w-4.5 h-4.5 text-brand-royal" />
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Grading Queue</h3>
+                <h3 className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-widest">Grading Queue</h3>
               </div>
               {submittedAssignments.length > 0 && (
-                <span className="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold px-2 py-0.5 rounded-full">
+                <span className="text-[9px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 font-bold px-2 py-0.5 rounded-full">
                   {submittedAssignments.length} Papers
                 </span>
               )}
             </div>
 
             {submittedAssignments.length === 0 ? (
-              <p className="text-xs text-slate-500 text-center py-8">No homework sheets awaiting review.</p>
+              <p className="text-xs text-slate-650 dark:text-slate-500 text-center py-8">No homework sheets awaiting review.</p>
             ) : (
               <div className="space-y-2.5">
                 {submittedAssignments.map((a) => (
                   <div 
                     key={a.id}
-                    className="p-3.5 rounded-xl bg-slate-900 border border-white/5 text-xs text-left space-y-3"
+                    className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/5 text-xs text-left space-y-3"
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-bold text-white truncate max-w-[140px]">{a.title}</h4>
-                        <span className="text-[9px] text-slate-500">{a.subjectTitle} • Submitted by Prathamesh</span>
+                        <h4 className="font-bold text-slate-900 dark:text-white truncate max-w-[140px]">{a.title}</h4>
+                        <span className="text-[9px] text-slate-650 dark:text-slate-500">{a.subjectTitle} • Submitted by Prathamesh</span>
                       </div>
-                      <span className="text-[9px] text-brand-royal-300 font-mono font-bold bg-slate-950 px-1.5 py-0.5 rounded border border-white/5">
+                      <span className="text-[9px] text-brand-royal dark:text-brand-royal-300 font-mono font-bold bg-slate-100 dark:bg-slate-950 px-1.5 py-0.5 rounded border border-slate-250 dark:border-white/5">
                         .pdf file
                       </span>
                     </div>
 
                     {gradingAssignId === a.id ? (
-                      <form onSubmit={handleGradeSubmit} className="space-y-3 border-t border-white/5 pt-3 animate-fade-in-up">
+                      <form onSubmit={handleGradeSubmit} className="space-y-3 border-t border-slate-200 dark:border-white/5 pt-3 animate-fade-in-up">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-slate-500 uppercase">Input Score / Grade</label>
+                          <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase">Input Score / Grade</label>
                           <input 
                             type="text" 
                             value={score} 
@@ -176,7 +176,7 @@ export const TeacherDashboard: React.FC = () => {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-slate-500 uppercase">Tutor Comments</label>
+                          <label className="text-[9px] font-bold text-slate-650 dark:text-slate-500 uppercase">Tutor Comments</label>
                           <textarea 
                             value={feedback} 
                             onChange={(e) => setFeedback(e.target.value)} 
@@ -188,7 +188,7 @@ export const TeacherDashboard: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setGradingAssignId(null)}
-                            className="w-1/3 py-2 rounded bg-slate-950 border border-white/5 text-[10px] text-slate-400 font-bold"
+                            className="w-1/3 py-2 rounded bg-slate-100 dark:bg-slate-950 border border-slate-250 dark:border-white/5 text-[10px] text-slate-700 dark:text-slate-400 font-bold"
                           >
                             Cancel
                           </button>
@@ -207,7 +207,7 @@ export const TeacherDashboard: React.FC = () => {
                           setScore('92');
                           setFeedback('Superb conceptual breakdown of cells.');
                         }}
-                        className="w-full py-2 bg-slate-950 hover:bg-slate-900 border border-white/5 hover:border-brand-royal/30 text-white rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1"
+                        className="w-full py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-900 border border-slate-250 dark:border-white/5 hover:border-brand-royal/30 text-slate-800 dark:text-white rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1"
                       >
                         <span>Evaluate Paper</span>
                         <ArrowRight className="w-3.5 h-3.5 text-brand-royal" />
